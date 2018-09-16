@@ -1,0 +1,71 @@
+{% load static %}
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Materialize CSS -->
+    <link rel="stylesheet" href="{% static "training_app/css/materialize.min.css" %}">
+    <link rel="stylesheet" href="{% static "training_app/css/custom.css" %}">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- My custom styles -->
+    <!-- <link rel="stylesheet" href="{% static 'training_app/css/styles.css'%}"> -->
+
+    <title>{% block title %}{% endblock %}</title>
+</head>
+<body>
+
+    {%  if request.user.is_authenticated %}
+
+    <nav class="grey darken-1">
+      <div class="nav-wrapper">
+        <a id="logo-container" href="#" class="brand-logo"><i class="material-icons">account_circle</i>Hi, {{ user }}!</a>
+        <a href="#" data-activates="mobile-demo" class="button-collapse"><i class="material-icons">settings</i></a>
+        <ul class="right hide-on-med-and-down">
+          <li><a href="/logout"><i class="material-icons left">lock_outline</i>Logout</a></li>
+        </ul>
+        <ul class="side-nav" id="mobile-demo">
+          <li><a href="/logout"><i class="material-icons left">lock_outline</i>Logout</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <ul id="slide-out" class="side-nav fixed grey lighten-5">
+      <li><a href="#!">First Side rightbar Link</a></li>
+      <li><a href="#!">Second Sidebar Link</a></li>
+    </ul>
+    <a href="#" data-activates="slide-out" class="my-sidenav show-on-large"><i class="material-icons">menu</i></a>
+
+    {% else %}
+
+    <nav class="grey darken-1">
+      <div class="nav-wrapper">
+        <a href="/" class="brand-logo"><i class="material-icons">home</i>Welcome</a>
+        <a href="#" data-activates="mobile-demo" class="button-collapse"><i class="material-icons">settings</i></a>
+        <ul class="right hide-on-med-and-down">
+          <li><a href="/login"><i class="material-icons left">lock_open</i>Login</a></li>
+        </ul>
+        <ul class="side-nav" id="mobile-demo">
+          <li><a href="/login"><i class="material-icons left">lock_open</i>Login</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    {% endif %}
+
+    {% block content %}{% endblock %}
+
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="{% static "training_app/js/materialize.min.js" %}"></script>
+    <script>
+        $( document ).ready(function(){
+            $(".button-collapse").sideNav();
+            $(".my-sidenav").sideNav();
+        });
+    </script>
+    </body>
+</html>

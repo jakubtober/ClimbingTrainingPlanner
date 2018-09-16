@@ -15,7 +15,11 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
+from planner_app.views import (
+    WelcomeView,
+)
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
+    url(r'^$', WelcomeView.as_view(), name='welcome'),
 ]
