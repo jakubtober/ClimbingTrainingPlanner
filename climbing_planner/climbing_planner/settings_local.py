@@ -23,7 +23,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'HOST': '127.0.0.1',
         'USER': 'root',
-        'NAME': 'climbing_training',
+        'NAME': 'climbing_planner',
         'PASSWORD': 'coderslab',
         'OPTIONS': {
             'autocommit': True,
