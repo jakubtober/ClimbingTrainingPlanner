@@ -6,3 +6,17 @@ from django.views import View
 class WelcomeView(View):
     def get(self, request):
         return render(request, 'welcome.html')
+
+class LoginView(View):
+    def get(self, request):
+        return render(request, 'login.html')
+
+    def post(self, request):
+        pass
+
+class RegisterView(View):
+    def get(self, request):
+        return render(request, 'register.html')
+
+    def post(self, request):
+        pass

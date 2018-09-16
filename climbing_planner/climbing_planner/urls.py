@@ -17,9 +17,13 @@ from django.conf.urls import url
 from django.contrib import admin
 from planner_app.views import (
     WelcomeView,
+    LoginView,
+    RegisterView,
 )
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^$', WelcomeView.as_view(), name='welcome'),
+    url(r'^login/$', LoginView.as_view(), name='login'),
+    url(r'^register/$', RegisterView.as_view(), name='register'),
 ]

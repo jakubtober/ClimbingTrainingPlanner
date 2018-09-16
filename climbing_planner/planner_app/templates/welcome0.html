@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}Welcome{% endblock %}
+
+{% block content %}
+
+  <div class="section no-pad-bot" id="index-banner">
+    <div class="container">
+      <br><br>
+      <h1 class="header center orange-text">weClimb</h1>
+      <div class="row center">
+        <h5 class="header col s12 light">A new way to track and improve your climbing trainings</h5>
+      </div>
+      <div class="row center">
+          <h6 class="grey-text text-darken-1">If you don't have account yet you can register below.</h6>
+      </div>
+      <div class="row center">
+        <a href="/register" id="download-button" class="btn-large waves-effect waves-light blue-grey"><i class="material-icons left">account_circle</i>Register</a>
+      </div>
+      <br><br>
+
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="section">
+
+      <!--   Icon Section   -->
+      <div class="row">
+        <div class="col s12 m4">
+          <div class="icon-block">
+            <h2 class="center light-blue-text"><i class="material-icons blue-text text-lighten-2" style="font-size: 3rem">fitness_center</i></h2>
+            <h5 class="center">Check your training plans</h5>
+
+            <p class="light">Check training plans for upcoming weeks. Track your progress, add notes and your thoughts.</p>
+          </div>
+        </div>
+
+        <div class="col s12 m4">
+          <div class="icon-block">
+            <h2 class="center light-blue-text"><i class="material-icons blue-text text-lighten-2" style="font-size: 3rem">insert_invitation</i></h2>
+            <h5 class="center">Add new training to the calendar</h5>
+
+            <p class="light">You can easily set up a new training here. Use existing exercises or add new ones.</p>
+          </div>
+        </div>
+
+        <div class="col s12 m4">
+          <div class="icon-block">
+            <h2 class="center light-blue-text"><i class="material-icons blue-text text-lighten-2" style="font-size: 3rem">library_add</i></h2>
+            <h5 class="center">Add default or custom exercises</h5>
+
+            <p class="light">We have provided some basic exercises that you can add to your training plans but you can also create your own list.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <br><br>
+  </div>
+
+{% endblock %}
