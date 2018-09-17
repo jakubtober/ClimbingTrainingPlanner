@@ -20,3 +20,7 @@ class RegisterView(View):
 
     def post(self, request):
         pass
+
+class ResetPasswordView(View):
+    def get(self, request):
+        return render(request, 'reset-password.html')

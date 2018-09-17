@@ -15,11 +15,19 @@
                   <div class="card-content">
                       <form class="" action="#" method="post">
                           {% csrf_token %}
-                          {{ form.as_p }}
+                          <div class="input-field">
+                              <i class="material-icons prefix">account_circle</i>
+                              <input type="text" id="id_username" class="validate" placeholder="username" data-length="64">
+                          </div>
+                          <div class="input-field">
+                              <i class="material-icons prefix">vpn_key</i>
+                              <input type="password" id="id_password" class="validate" placeholder="password">
+                          </div>
                           <button class="waves-effect waves-light btn-large blue-grey" style="width: 100%" type="submit" name="">
                               <span class=""><i class="material-icons left">lock_open</i>LOGIN</span>
                           </button>
-                          <p class="center-align grey-text text-darken-2" style="margin-top: 10px;">Not registered yet? Register <a href="/register">here</a>.</p>
+                          <p class="center-align grey-text text-darken-2" style="margin-top: 10px;">Not registered yet? Register <a href="/register">here.</a></p>
+                          <p class="center-align grey-text text-darken-2" style="margin-top: 10px;"><a href="/reset-password">Forgot password?</a></p>
                       </form>
                   </div>
               </div>
