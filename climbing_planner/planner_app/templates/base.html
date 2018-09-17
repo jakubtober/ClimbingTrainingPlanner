@@ -12,9 +12,6 @@
     <link rel="stylesheet" href="{% static "planner_app/css/custom.css" %}">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-    <!-- My custom styles -->
-    <!-- <link rel="stylesheet" href="{% static 'training_app/css/styles.css'%}"> -->
-
     <title>{% block title %}{% endblock %}</title>
 </head>
 <body>
@@ -65,6 +62,7 @@
         $( document ).ready(function(){
             $(".button-collapse").sideNav();
             $(".my-sidenav").sideNav();
+            $('.tooltipped').tooltip();
         });
     </script>
     </body>

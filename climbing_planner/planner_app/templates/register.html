@@ -17,17 +17,24 @@
                           {% csrf_token %}
                           <div class="input-field">
                               <i class="material-icons prefix">account_circle</i>
-                              <input type="text" id="id_username" class="validate" placeholder="username" data-length="64">
+                              {{ form.username }}
                           </div>
                           <div class="input-field">
                               <i class="material-icons prefix">email</i>
-                              <input type="email" id="id_email" class="validate" placeholder="email" data-length="64">
+                              {{ form.email }}
                               <label for="id_email" data-error="Please use correct email address" data-success="Correct"></label>
                           </div>
                           <div class="input-field">
                               <i class="material-icons prefix">vpn_key</i>
-                              <input type="password" id="id_password" class="validate" placeholder="password">
-                          </div>
+                              {{ form.password }}
+                          </div></br>
+
+                          <p class="center">
+                              <i class="material-icons tooltipped right" style="vertical-align: middle;" data-position="right" data-tooltip="Instructors can create trainings for other people and track their progress">help</i>
+                              {{ form.is_instructor }}
+                              <label for="id_is_instructor">Are you an instructor?</label>
+                          </p></br>
+
                           <button class="waves-effect waves-light btn-large blue-grey" style="width: 100%" type="submit" name="">
                               <span class=""><i class="material-icons left">account_circle</i>REGISTER</span>
                           </button>
