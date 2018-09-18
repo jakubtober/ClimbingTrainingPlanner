@@ -18,14 +18,18 @@ from django.contrib import admin
 from planner_app.views import (
     WelcomeView,
     LoginView,
+    LogoutView,
     RegisterView,
     ResetPasswordView,
+    HomeView,
 )
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^$', WelcomeView.as_view(), name='welcome'),
     url(r'^login/$', LoginView.as_view(), name='login'),
+    url(r'^logout/$', LogoutView.as_view(), name='logout'),
     url(r'^register/$', RegisterView.as_view(), name='register'),
     url(r'^reset-password/$', ResetPasswordView.as_view(), name='reset-password'),
+    url(r'^home/$', HomeView.as_view(), name='home'),
 ]
