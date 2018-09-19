@@ -2,6 +2,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
+from django.core.mail import EmailMessage
 from django.views import View
 from planner_app.models import Profile
 from planner_app.forms import (
@@ -101,9 +102,18 @@ class RegisterView(View):
                     username=username,
                     email=email,
                     password=password,
-                    is_active=False
+                    is_active=True
                 )
                 new_profile = Profile.objects.create(user=new_user, is_instructor=is_instructor)
+
+                # email_message = 'Please use this link to activate your account: 127.0.0.1/{}'.format(new_profile.activation_token)
+                # email = EmailMessage(
+                #     'Activate your profile - weClimb.',
+                #     email_message,
+                #     [email],
+                # )
+                # email.send(fail_silently=False)
+
                 form.add_error(field=None, error=activation_message)
                 return redirect('login')
         else:
