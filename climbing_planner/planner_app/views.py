@@ -2,7 +2,6 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
-from django.core.mail import EmailMessage
 from django.views import View
 from planner_app.models import Profile
 from planner_app.forms import (
@@ -88,34 +87,24 @@ class RegisterView(View):
             email = form.cleaned_data['email']
             password = form.cleaned_data['password']
             is_instructor = form.cleaned_data['is_instructor']
-            user_exists = User.objects.filter(username=username)
-            email_exists = User.objects.filter(email=email)
 
-            if len(password) < 6:
-                form.add_error(field=None, error=password_validation_message)
-                return render(request, 'register.html', ctx)
-            if user_exists or email_exists:
+            if User.objects.filter(username=username).exists() or User.objects.filter(email=email).exists():
                 form.add_error(field=None, error=use_different_username_email_message)
                 return render(request, 'register.html', ctx)
             else:
-                new_user = User.objects.create_user(
-                    username=username,
-                    email=email,
-                    password=password,
-                    is_active=True
-                )
-                new_profile = Profile.objects.create(user=new_user, is_instructor=is_instructor)
-
-                # email_message = 'Please use this link to activate your account: 127.0.0.1/{}'.format(new_profile.activation_token)
-                # email = EmailMessage(
-                #     'Activate your profile - weClimb.',
-                #     email_message,
-                #     [email],
-                # )
-                # email.send(fail_silently=False)
-
-                form.add_error(field=None, error=activation_message)
-                return redirect('login')
+                if len(password) < 6:
+                    form.add_error(field=None, error=password_validation_message)
+                    return render(request, 'register.html', ctx)
+                else:
+                    new_user = User.objects.create_user(
+                        username=username,
+                        email=email,
+                        password=password,
+                        is_active=True
+                    )
+                    new_profile = Profile.objects.create(user=new_user, is_instructor=is_instructor)
+                    new_profile.send_activation_email()
+                    return redirect('login')
         else:
             form.add_error(field=None, error=enter_correct_credentials_message)
             return render(request, 'register.html', ctx)
