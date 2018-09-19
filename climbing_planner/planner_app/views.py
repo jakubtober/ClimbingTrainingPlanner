@@ -25,22 +25,34 @@ class LoginView(View):
 
     def post(self, request):
         form = LoginForm(request.POST)
+        enter_correct_credentials_message = 'Please enter correct credentials.'
+        activate_account_message = 'Please activate your account first'
+
         ctx = {
             'form': form,
         }
+
         if form.is_valid():
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
-            user = authenticate(username=username, password=password)
+            user_exists = User.objects.filter(username=username)
 
-            if user:
-                login(request, user)
-                return redirect('home')
+            if user_exists:
+                if user_exists[0].is_active == True:
+                    user = authenticate(username=username, password=password)
+
+                    if user:
+                        login(request, user)
+                        return redirect('home')
+                    else:
+                        form.add_error(field=None, error=enter_correct_credentials_message)
+                        return render(request, 'login.html', ctx)
+                else:
+                    form.add_error(field=None, error=activate_account_message)
+                    return render(request, 'login.html', ctx)
             else:
-                form.add_error(field=None, error="Please enter correct credentials")
+                form.add_error(field=None, error=enter_correct_credentials_message)
                 return render(request, 'login.html', ctx)
-
-        return render(request, 'home.html', ctx)
 
 
 class LogoutView(LoginRequiredMixin, View):
@@ -60,6 +72,10 @@ class RegisterView(View):
 
     def post(self, request):
         form = RegisterForm(request.POST)
+        activation_message = 'We have sent email with activation link to your email box, please click it to activate your account.'
+        password_validation_message = 'Password needs to have minimum 6 characters.'
+        use_different_username_email_message = 'Please user different username and/or email.'
+        enter_correct_credentials_message = 'Please enter correct details.'
 
         ctx = {
             'form': form,
@@ -74,16 +90,17 @@ class RegisterView(View):
             email_exists = User.objects.filter(email=email)
 
             if len(password) < 6:
-                form.add_error(field=None, error="Password needs to have minimum 6 characters.")
+                form.add_error(field=None, error=password_validation_message)
                 return render(request, 'register.html', ctx)
             if user_exists or email_exists:
-                form.add_error(field=None, error="Please user different username and/or email.")
+                form.add_error(field=None, error=use_different_username_email_message)
                 return render(request, 'register.html', ctx)
             else:
                 User.objects.create_user(username=username, email=email, password=password, is_active=False)
+                form.add_error(field=None, error=activation_message)
                 return redirect('login')
         else:
-            form.add_error(field=None, error="Please enter correct details.")
+            form.add_error(field=None, error=enter_correct_credentials_message)
             return render(request, 'register.html', ctx)
         return render(request, 'register.html', ctx)
 
