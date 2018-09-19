@@ -3,6 +3,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from django.views import View
+from planner_app.models import Profile
 from planner_app.forms import (
     LoginForm,
     RegisterForm,
@@ -27,6 +28,7 @@ class LoginView(View):
         form = LoginForm(request.POST)
         enter_correct_credentials_message = 'Please enter correct credentials.'
         activate_account_message = 'Please activate your account first'
+        try_later_message = 'Sorry, please try again later.'
 
         ctx = {
             'form': form,
@@ -40,12 +42,11 @@ class LoginView(View):
             if user_exists:
                 if user_exists[0].is_active == True:
                     user = authenticate(username=username, password=password)
-
                     if user:
                         login(request, user)
                         return redirect('home')
                     else:
-                        form.add_error(field=None, error=enter_correct_credentials_message)
+                        form.add_error(field=None, error=try_later_message)
                         return render(request, 'login.html', ctx)
                 else:
                     form.add_error(field=None, error=activate_account_message)
@@ -96,7 +97,13 @@ class RegisterView(View):
                 form.add_error(field=None, error=use_different_username_email_message)
                 return render(request, 'register.html', ctx)
             else:
-                User.objects.create_user(username=username, email=email, password=password, is_active=False)
+                new_user = User.objects.create_user(
+                    username=username,
+                    email=email,
+                    password=password,
+                    is_active=False
+                )
+                new_profile = Profile.objects.create(user=new_user, is_instructor=is_instructor)
                 form.add_error(field=None, error=activation_message)
                 return redirect('login')
         else:
