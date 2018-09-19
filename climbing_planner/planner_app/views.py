@@ -71,14 +71,19 @@ class RegisterView(View):
             password = form.cleaned_data['password']
             is_instructor = form.cleaned_data['is_instructor']
             user_exists = User.objects.filter(username=username)
+            email_exists = User.objects.filter(email=email)
 
-            if user_exists:
-                form.add_error(field=None, error="Please user different username.")
+            if len(password) < 6:
+                form.add_error(field=None, error="Password needs to have minimum 6 characters.")
+                return render(request, 'register.html', ctx)
+            if user_exists or email_exists:
+                form.add_error(field=None, error="Please user different username and/or email.")
                 return render(request, 'register.html', ctx)
             else:
-                User.objects.create_user(username=username, email=email, password=password)
+                User.objects.create_user(username=username, email=email, password=password, is_active=False)
                 return redirect('login')
-
+        else:
+            form.add_error(field=None, error="Please enter correct details.")
             return render(request, 'register.html', ctx)
         return render(request, 'register.html', ctx)
 
