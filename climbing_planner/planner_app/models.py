@@ -8,7 +8,7 @@ from uuid import uuid4
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     is_instructor = models.BooleanField(default=False)
-    activation_token = models.CharField(max_length=64, default=uuid4())
+    activation_token = models.CharField(max_length=128, default=uuid4())
 
     def send_activation_email(self):
         activation_message ="""
@@ -16,7 +16,7 @@ class Profile(models.Model):
 
         Welcome in weClimb, please click following link to activate your account:
 
-        http://127.0.0.1:8000/login/activate/{}
+        http://127.0.0.1:8000/register/activate?token={}
 
         Thank you,
         weClimb team

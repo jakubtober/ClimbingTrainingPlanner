@@ -1,9 +1,12 @@
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
+from django.shortcuts import get_object_or_404
 from django.views import View
 from planner_app.models import Profile
+from django.http import HttpResponse
 from planner_app.forms import (
     LoginForm,
     RegisterForm,
@@ -100,15 +103,53 @@ class RegisterView(View):
                         username=username,
                         email=email,
                         password=password,
-                        is_active=True
+                        is_active=False
                     )
-                    new_profile = Profile.objects.create(user=new_user, is_instructor=is_instructor)
+                    new_profile = Profile.objects.create(
+                        user=new_user,
+                        is_instructor=is_instructor,
+                        activation_token=default_token_generator.make_token(new_user)
+                    )
                     new_profile.send_activation_email()
-                    return redirect('login')
+                    ctx = {
+                        'form': LoginForm,
+                        'please_activate_your_account_message': 'You should receive email with activation link, please use it to activate your account.'
+                    }
+                    return render(request, 'login.html', ctx)
         else:
             form.add_error(field=None, error=enter_correct_credentials_message)
             return render(request, 'register.html', ctx)
         return render(request, 'register.html', ctx)
+
+
+class ActivateUserView(View):
+    def get(self, request):
+        token = request.GET['token']
+
+        try:
+            users_profile_with_token = Profile.objects.get(activation_token=token)
+            user_with_token = users_profile_with_token.user
+
+            if default_token_generator.check_token(user_with_token, token):
+                user_with_token.is_active = True
+                user_with_token.save()
+                ctx = {
+                    'form': LoginForm,
+                    'activation_message_success': 'User successfully activated.'
+                }
+                return render(request, 'login.html', ctx)
+            else:
+                ctx = {
+                    'form': LoginForm,
+                    'activation_message_unsuccessful': "Couldn't activate account, token is not correct."
+                }
+                return render(request, 'login.html', ctx)
+        except:
+            ctx = {
+                'form': LoginForm,
+                'activation_message_unsuccessful': 'Account has been already activated or there is no such user anymore.'
+            }
+            return render(request, 'login.html', ctx)
 
 
 class ResetPasswordView(View):
