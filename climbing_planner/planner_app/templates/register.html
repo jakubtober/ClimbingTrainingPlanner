@@ -17,19 +17,17 @@
                           {% csrf_token %}
                           {{ form.non_field_errors }}
                           <div class="input-field">
-                              <i class="material-icons prefix">account_circle</i>
-                              {{ form.username }}
-                          </div>
-                          <div class="input-field">
                               <i class="material-icons prefix">email</i>
-                              {{ form.email }}
-                              <label for="id_email" data-error="Please use correct email address" data-success="Correct"></label>
+                              {{ form.username }}
                           </div>
                           <div class="input-field">
                               <i class="material-icons prefix">vpn_key</i>
                               {{ form.password }}
                           </div></br>
-
+                          <div class="input-field">
+                              <i class="material-icons prefix">vpn_key</i>
+                              {{ form.confirm_password }}
+                          </div></br>
                           <p class="center">
                               <i class="material-icons tooltipped right" style="vertical-align: middle;" data-position="right" data-tooltip="Instructors can create trainings for other people and track their progress">help</i>
                               {{ form.is_instructor }}

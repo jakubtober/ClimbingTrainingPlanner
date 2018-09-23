@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404
 from django.views import View
 from planner_app.models import Profile
 from django.http import HttpResponse
+from planner_app import custom_messages
 from planner_app.forms import (
     LoginForm,
     RegisterForm,
@@ -29,9 +30,6 @@ class LoginView(View):
 
     def post(self, request):
         form = LoginForm(request.POST)
-        enter_correct_credentials_message = 'Please enter correct credentials.'
-        activate_account_message = 'Please activate your account first'
-        try_later_message = 'Sorry, please try again later.'
 
         ctx = {
             'form': form,
@@ -49,13 +47,13 @@ class LoginView(View):
                         login(request, user)
                         return redirect('home')
                     else:
-                        form.add_error(field=None, error=try_later_message)
+                        form.add_error(field=None, error=custom_messages.try_later)
                         return render(request, 'login.html', ctx)
                 else:
-                    form.add_error(field=None, error=activate_account_message)
+                    form.add_error(field=None, error=custom_messages.activate_account)
                     return render(request, 'login.html', ctx)
             else:
-                form.add_error(field=None, error=enter_correct_credentials_message)
+                form.add_error(field=None, error=custom_messages.enter_correct_credentials)
                 return render(request, 'login.html', ctx)
 
 
@@ -76,10 +74,6 @@ class RegisterView(View):
 
     def post(self, request):
         form = RegisterForm(request.POST)
-        activation_message = 'We have sent email with activation link to your email box, please click it to activate your account.'
-        password_validation_message = 'Password needs to have minimum 6 characters.'
-        use_different_username_email_message = 'Please user different username and/or email.'
-        enter_correct_credentials_message = 'Please enter correct details.'
 
         ctx = {
             'form': form,
@@ -87,37 +81,40 @@ class RegisterView(View):
 
         if form.is_valid():
             username = form.cleaned_data['username']
-            email = form.cleaned_data['email']
             password = form.cleaned_data['password']
+            confirm_password = form.cleaned_data['confirm_password']
             is_instructor = form.cleaned_data['is_instructor']
 
-            if User.objects.filter(username=username).exists() or User.objects.filter(email=email).exists():
-                form.add_error(field=None, error=use_different_username_email_message)
+            if User.objects.filter(username=username).exists():
+                form.add_error(field=None, error=custom_messages.use_different_email)
                 return render(request, 'register.html', ctx)
             else:
-                if len(password) < 6:
-                    form.add_error(field=None, error=password_validation_message)
-                    return render(request, 'register.html', ctx)
+                if password == confirm_password:
+                    if len(password) < 6:
+                        form.add_error(field=None, error=custom_messages.password_validation)
+                        return render(request, 'register.html', ctx)
+                    else:
+                        new_user = User.objects.create_user(
+                            username=username,
+                            password=password,
+                            is_active=False
+                        )
+                        new_profile = Profile.objects.create(
+                            user=new_user,
+                            is_instructor=is_instructor,
+                            activation_token=default_token_generator.make_token(new_user)
+                        )
+                        new_profile.send_activation_email()
+                        ctx = {
+                            'form': LoginForm,
+                            'please_activate_your_account_message': custom_messages.activation_email_sent,
+                        }
+                        return render(request, 'login.html', ctx)
                 else:
-                    new_user = User.objects.create_user(
-                        username=username,
-                        email=email,
-                        password=password,
-                        is_active=False
-                    )
-                    new_profile = Profile.objects.create(
-                        user=new_user,
-                        is_instructor=is_instructor,
-                        activation_token=default_token_generator.make_token(new_user)
-                    )
-                    new_profile.send_activation_email()
-                    ctx = {
-                        'form': LoginForm,
-                        'please_activate_your_account_message': 'You should receive email with activation link, please use it to activate your account.'
-                    }
-                    return render(request, 'login.html', ctx)
+                    form.add_error(field=None, error=custom_messages.passwords_not_matched)
+                    return render(request, 'register.html', ctx)
         else:
-            form.add_error(field=None, error=enter_correct_credentials_message)
+            form.add_error(field=None, error=custom_messages.enter_correct_credentials)
             return render(request, 'register.html', ctx)
         return render(request, 'register.html', ctx)
 
@@ -125,30 +122,23 @@ class RegisterView(View):
 class ActivateUserView(View):
     def get(self, request):
         token = request.GET['token']
+        ctx = {
+            'form': LoginForm,
+        }
 
         try:
             users_profile_with_token = Profile.objects.get(activation_token=token)
             user_with_token = users_profile_with_token.user
 
             if default_token_generator.check_token(user_with_token, token):
-                user_with_token.is_active = True
-                user_with_token.save()
-                ctx = {
-                    'form': LoginForm,
-                    'activation_message_success': 'User successfully activated.'
-                }
+                users_profile_with_token.activate_user()
+                ctx['activation_message_success'] = custom_messages.user_successfully_activated
                 return render(request, 'login.html', ctx)
             else:
-                ctx = {
-                    'form': LoginForm,
-                    'activation_message_unsuccessful': "Couldn't activate account, token is not correct."
-                }
+                ctx['activation_message_unsuccessful'] = custom_messages.token_not_correct
                 return render(request, 'login.html', ctx)
         except:
-            ctx = {
-                'form': LoginForm,
-                'activation_message_unsuccessful': 'Account has been already activated or there is no such user anymore.'
-            }
+            ctx['activation_message_unsuccessful'] = custom_messages.account_already_activated
             return render(request, 'login.html', ctx)
 
 

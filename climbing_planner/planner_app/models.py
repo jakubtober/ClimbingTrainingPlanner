@@ -8,7 +8,7 @@ from uuid import uuid4
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     is_instructor = models.BooleanField(default=False)
-    activation_token = models.CharField(max_length=128, default=uuid4())
+    activation_token = models.CharField(max_length=128, default='')
 
     def send_activation_email(self):
         activation_message ="""
@@ -26,6 +26,12 @@ class Profile(models.Model):
             'Activate account - weClimb',
             activation_message,
             'climbing.planner@gmail.com',
-            [str(self.user.email)],
+            [str(self.user.username)],
             fail_silently=False,
         )
+
+    def activate_user(self):
+        self.user.is_active = True
+        self.user.save()
+        self.activation_token = ''
+        self.save()
