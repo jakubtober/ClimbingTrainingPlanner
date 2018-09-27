@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.mail import EmailMessage, send_mail
+from django.contrib.auth.tokens import default_token_generator
+from planner_app import custom_messages
 from uuid import uuid4
 
 # Create your models here.

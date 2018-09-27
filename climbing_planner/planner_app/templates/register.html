@@ -15,7 +15,10 @@
                   <div class="card-content">
                       <form class="" action="#" method="post">
                           {% csrf_token %}
-                          {{ form.non_field_errors }}
+                          {% for error in form.non_field_errors %}
+                          {{ error }}
+                          {% endfor %}
+                          <!-- {{ form.non_field_errors }} -->
                           <div class="input-field">
                               <i class="material-icons prefix">email</i>
                               {{ form.username }}

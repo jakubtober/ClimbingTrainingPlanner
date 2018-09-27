@@ -5,9 +5,9 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.views import View
-from planner_app.models import Profile
 from django.http import HttpResponse
 from planner_app import custom_messages
+from planner_app.models import Profile
 from planner_app.forms import (
     LoginForm,
     RegisterForm,
@@ -38,23 +38,14 @@ class LoginView(View):
         if form.is_valid():
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
-            user_exists = User.objects.filter(username=username)
+            user = authenticate(username=username, password=password)
 
-            if user_exists:
-                if user_exists[0].is_active == True:
-                    user = authenticate(username=username, password=password)
-                    if user:
-                        login(request, user)
-                        return redirect('home')
-                    else:
-                        form.add_error(field=None, error=custom_messages.try_later)
-                        return render(request, 'login.html', ctx)
-                else:
-                    form.add_error(field=None, error=custom_messages.activate_account)
-                    return render(request, 'login.html', ctx)
+            if user:
+                login(request, user)
+                return redirect('home')
             else:
                 form.add_error(field=None, error=custom_messages.enter_correct_credentials)
-                return render(request, 'login.html', ctx)
+        return render(request, 'login.html', ctx)
 
 
 class LogoutView(LoginRequiredMixin, View):
@@ -85,38 +76,24 @@ class RegisterView(View):
             confirm_password = form.cleaned_data['confirm_password']
             is_instructor = form.cleaned_data['is_instructor']
 
-            if User.objects.filter(username=username).exists():
-                form.add_error(field=None, error=custom_messages.use_different_email)
-                return render(request, 'register.html', ctx)
-            else:
-                if password == confirm_password:
-                    if len(password) < 6:
-                        form.add_error(field=None, error=custom_messages.password_validation)
-                        return render(request, 'register.html', ctx)
-                    else:
-                        new_user = User.objects.create_user(
-                            username=username,
-                            password=password,
-                            is_active=False
-                        )
-                        new_profile = Profile.objects.create(
-                            user=new_user,
-                            is_instructor=is_instructor,
-                            activation_token=default_token_generator.make_token(new_user)
-                        )
-                        new_profile.send_activation_email()
-                        ctx = {
-                            'form': LoginForm,
-                            'please_activate_your_account_message': custom_messages.activation_email_sent,
-                        }
-                        return render(request, 'login.html', ctx)
-                else:
-                    form.add_error(field=None, error=custom_messages.passwords_not_matched)
-                    return render(request, 'register.html', ctx)
+            new_user = User.objects.create_user(
+                username=username,
+                password=password,
+                is_active=False
+            )
+            new_profile = Profile.objects.create(
+                user=new_user,
+                is_instructor=is_instructor,
+                activation_token=default_token_generator.make_token(new_user)
+            )
+            new_profile.send_activation_email()
+            ctx = {
+                'form': LoginForm,
+                'please_activate_your_account_message': custom_messages.activation_email_sent,
+            }
+            return render(request, 'login.html', ctx)
         else:
-            form.add_error(field=None, error=custom_messages.enter_correct_credentials)
             return render(request, 'register.html', ctx)
-        return render(request, 'register.html', ctx)
 
 
 class ActivateUserView(View):
