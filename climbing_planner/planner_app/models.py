@@ -24,7 +24,7 @@ class Profile(models.Model):
         weClimb team
         """.format(self.user.username, self.activation_token)
 
-        send_mail(
+        return send_mail(
             'Activate account - weClimb',
             activation_message,
             'climbing.planner@gmail.com',
