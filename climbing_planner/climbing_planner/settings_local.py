@@ -9,6 +9,9 @@
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '4%^_+c8o%o$pg@729ipph-qvso753p9r4d*(lh*#9!3j)r_hei'
 
+DEPLOYMENT_URL = 'http://www.weclimb.com'
+LOCAL_URL = 'http://127.0.0.1:8000/'
+
 DEBUG = True
 
 # Allowed hosts

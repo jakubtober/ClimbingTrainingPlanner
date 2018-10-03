@@ -39,7 +39,7 @@ class LoginView(View):
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
             user = authenticate(username=username, password=password)
-            
+
             if user:
                 login(request, user)
                 return redirect('home')
@@ -129,5 +129,12 @@ class ResetPasswordView(View):
 
 class HomeView(LoginRequiredMixin, View):
     login_url = 'login'
+
     def get(self, request):
-        return render(request, 'home.html')
+        user = request.user
+        profile = Profile.objects.get(user=request.user)
+        ctx = {
+            'profile': profile,
+        }
+
+        return render(request, 'home.html', ctx)

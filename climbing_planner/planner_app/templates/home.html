@@ -10,9 +10,13 @@
           <div class="section no-pad-bot" id="index-banner">
             <div class="container">
               <br><br>
-              <h1 class="header center orange-text">weClimb</h1>
+              {% if profile.is_instructor == True %}
+              <h1 class="header center grey-text">Instructors dashboard</h1>
+              {% else %}
+              <h1 class="header center grey-text">User dashboard</h1>
+              {% endif %}
               <div class="row center">
-                <h5 class="header col s12 light">A new way to track and improve your trainings</h5>
+                <h5 class="header col s12 light">Use the button below to create new training plans</h5>
               </div>
               <div class="row center">
                 <a href="" id="download-button" class="btn-large waves-effect waves-light orange"><i class="material-icons left">add</i>Add new training</a>

@@ -10,8 +10,11 @@ from uuid import uuid4
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     is_instructor = models.BooleanField(default=False)
-    activation_token = models.CharField(max_length=128, default='')
+    activation_token = models.CharField(max_length=128, default='', blank=True)
 
+    def __str__(self):
+        return self.user.username
+        
     def send_activation_email(self):
         activation_message ="""
         Hi {},

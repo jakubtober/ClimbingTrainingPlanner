@@ -8,7 +8,7 @@ from planner_app.forms import (
     ResetPasswordForm,
 )
 
-class ValidatePassword(TestCase):
+class ModelTest(TestCase):
     def setUp(self):
         active_user_name = 'test1@test.com'
         inactive_user_name = 'test2@test.com'
