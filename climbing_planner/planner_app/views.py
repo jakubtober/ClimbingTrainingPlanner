@@ -127,6 +127,14 @@ class ResetPasswordView(View):
         return render(request, 'reset-password.html', ctx)
 
 
+class SetNewPasswordView(View):
+    def get(self, request):
+        return HttpResponse('set new pass GET')
+
+    def post(self, request):
+        return HttpResponse('set new pass POST')
+
+
 class HomeView(LoginRequiredMixin, View):
     login_url = 'login'
 

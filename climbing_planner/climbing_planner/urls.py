@@ -22,6 +22,7 @@ from planner_app.views import (
     RegisterView,
     ActivateUserView,
     ResetPasswordView,
+    SetNewPasswordView,
     HomeView,
 )
 
@@ -33,5 +34,6 @@ urlpatterns = [
     url(r'^register/$', RegisterView.as_view(), name='register'),
     url(r'^register/activate$', ActivateUserView.as_view(), name='activate-user'),
     url(r'^reset-password/$', ResetPasswordView.as_view(), name='reset-password'),
+    url(r'^set-new-password/$', SetNewPasswordView.as_view(), name='set-new-password'),
     url(r'^home/$', HomeView.as_view(), name='home'),
 ]
