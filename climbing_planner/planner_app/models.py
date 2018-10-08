@@ -14,7 +14,7 @@ class Profile(models.Model):
 
     def __str__(self):
         return self.user.username
-        
+
     def send_activation_email(self):
         activation_message ="""
         Hi {},
@@ -40,3 +40,15 @@ class Profile(models.Model):
         self.user.save()
         self.activation_token = ''
         self.save()
+
+    def send_reset_password_email(self):
+        activation_message ="""
+        Hi {},
+
+        Please click following link to change your password:
+
+        http://127.0.0.1:8000/set-new-password?token={}
+
+        Thank you,
+        weClimb team
+        """.format(self.user.username, self.activation_token)
