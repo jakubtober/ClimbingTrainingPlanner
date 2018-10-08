@@ -12,6 +12,7 @@ from planner_app.forms import (
     LoginForm,
     RegisterForm,
     ResetPasswordForm,
+    SetNewPasswordForm,
 )
 
 # Create your views here.
@@ -23,29 +24,35 @@ class WelcomeView(View):
 
 class LoginView(View):
     def get(self, request):
-        ctx = {
-            'form': LoginForm,
-        }
-        return render(request, 'login.html', ctx)
+        if not request.user.is_authenticated:
+            ctx = {
+                'form': LoginForm,
+            }
+            return render(request, 'login.html', ctx)
+        else:
+            return redirect('home')
 
     def post(self, request):
-        form = LoginForm(request.POST)
+        if not request.user.is_authenticated:
+            form = LoginForm(request.POST)
 
-        ctx = {
-            'form': form,
-        }
+            ctx = {
+                'form': form,
+            }
 
-        if form.is_valid():
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
-            user = authenticate(username=username, password=password)
+            if form.is_valid():
+                username = form.cleaned_data['username']
+                password = form.cleaned_data['password']
+                user = authenticate(username=username, password=password)
 
-            if user:
-                login(request, user)
-                return redirect('home')
-            else:
-                form.add_error(field=None, error=custom_messages.enter_correct_credentials)
-        return render(request, 'login.html', ctx)
+                if user:
+                    login(request, user)
+                    return redirect('home')
+                else:
+                    form.add_error(field=None, error=custom_messages.enter_correct_credentials)
+            return render(request, 'login.html', ctx)
+        else:
+            return redirect('home')
 
 
 class LogoutView(LoginRequiredMixin, View):
@@ -58,65 +65,74 @@ class LogoutView(LoginRequiredMixin, View):
 
 class RegisterView(View):
     def get(self, request):
-        ctx = {
-            'form': RegisterForm,
-        }
-        return render(request, 'register.html', ctx)
+        if not request.user.is_authenticated:
+            ctx = {
+                'form': RegisterForm,
+            }
+            return render(request, 'register.html', ctx)
+        else:
+            return redirect('home')
 
     def post(self, request):
-        form = RegisterForm(request.POST)
+        if not request.user.is_authenticated:
+            form = RegisterForm(request.POST)
 
-        ctx = {
-            'form': form,
-        }
-
-        if form.is_valid():
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
-            confirm_password = form.cleaned_data['confirm_password']
-            is_instructor = form.cleaned_data['is_instructor']
-
-            new_user = User.objects.create_user(
-                username=username,
-                password=password,
-                is_active=False
-            )
-            new_profile = Profile.objects.create(
-                user=new_user,
-                is_instructor=is_instructor,
-                activation_token=default_token_generator.make_token(new_user)
-            )
-            new_profile.send_activation_email()
             ctx = {
-                'form': LoginForm,
-                'please_activate_your_account_message': custom_messages.activation_email_sent,
+                'form': form,
             }
-            return render(request, 'login.html', ctx)
+
+            if form.is_valid():
+                username = form.cleaned_data['username']
+                password = form.cleaned_data['password']
+                confirm_password = form.cleaned_data['confirm_password']
+                is_instructor = form.cleaned_data['is_instructor']
+
+                new_user = User.objects.create_user(
+                    username=username,
+                    password=password,
+                    is_active=False
+                )
+                new_profile = Profile.objects.create(
+                    user=new_user,
+                    is_instructor=is_instructor,
+                    activation_token=default_token_generator.make_token(new_user)
+                )
+                new_profile.send_activation_email()
+                ctx = {
+                    'form': LoginForm,
+                    'please_activate_your_account_message': custom_messages.activation_email_sent,
+                }
+                return render(request, 'login.html', ctx)
+            else:
+                return render(request, 'register.html', ctx)
         else:
-            return render(request, 'register.html', ctx)
+            return redirect('home')
 
 
 class ActivateUserView(View):
     def get(self, request):
-        token = request.GET['token']
-        ctx = {
-            'form': LoginForm,
-        }
+        if not request.user.is_authenticated:
+            token = request.GET['token']
+            ctx = {
+                'form': LoginForm,
+            }
 
-        try:
-            users_profile_with_token = Profile.objects.get(activation_token=token)
-            user_with_token = users_profile_with_token.user
+            try:
+                users_profile_with_token = Profile.objects.get(activation_token=token)
+                user_with_token = users_profile_with_token.user
 
-            if default_token_generator.check_token(user_with_token, token):
-                users_profile_with_token.activate_user()
-                ctx['activation_message_success'] = custom_messages.user_successfully_activated
+                if default_token_generator.check_token(user_with_token, token):
+                    users_profile_with_token.activate_user()
+                    ctx['activation_message_success'] = custom_messages.user_successfully_activated
+                    return render(request, 'login.html', ctx)
+                else:
+                    ctx['activation_message_unsuccessful'] = custom_messages.token_not_correct
+                    return render(request, 'login.html', ctx)
+            except:
+                ctx['activation_message_unsuccessful'] = custom_messages.account_already_activated
                 return render(request, 'login.html', ctx)
-            else:
-                ctx['activation_message_unsuccessful'] = custom_messages.token_not_correct
-                return render(request, 'login.html', ctx)
-        except:
-            ctx['activation_message_unsuccessful'] = custom_messages.account_already_activated
-            return render(request, 'login.html', ctx)
+        else:
+            return redirect('home')
 
 
 class ResetPasswordView(View):
@@ -126,13 +142,38 @@ class ResetPasswordView(View):
         }
         return render(request, 'reset-password.html', ctx)
 
+    def post(self, request):
+        form = ResetPasswordForm(request.POST)
+        ctx = {
+            'form': form,
+        }
+
+        if form.is_valid:
+            return render(request, 'reset-password.html', ctx)
+        else:
+            return render(request, 'reset-password.html', ctx)
+
 
 class SetNewPasswordView(View):
     def get(self, request):
-        return HttpResponse('set new pass GET')
+        if not request.user.is_authenticated:
+            ctx = {
+                'form': SetNewPasswordForm,
+            }
+            return render(request, 'set-new-password.html', ctx)
+        else:
+            return redirect('home')
 
     def post(self, request):
-        return HttpResponse('set new pass POST')
+        form = SetNewPasswordForm(request.POST)
+        ctx = {
+            'form': form,
+        }
+
+        if form.is_valid:
+            return render(request, 'set-new-password.html', ctx)
+        else:
+            return render(request, 'set-new-password.html', ctx)
 
 
 class HomeView(LoginRequiredMixin, View):
