@@ -11,6 +11,7 @@ class LoginForm(forms.Form):
         'placeholder': 'email',
         'class':'validate',
         'data-length': '64',
+        'pattern': '[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$',
     })
     password.widget.attrs.update({
         'placeholder': 'password',
@@ -41,6 +42,7 @@ class RegisterForm(forms.Form):
         'placeholder': 'email',
         'class':'validate',
         'data-length': '64',
+        'pattern': '[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$',
     })
     password.widget.attrs.update({
         'placeholder': 'password',
@@ -64,7 +66,7 @@ class RegisterForm(forms.Form):
         except KeyError:
             self.add_error(field=None, error=custom_messages.email_format_not_correct)
 
-                    
+
 class ResetPasswordForm(forms.Form):
     email = forms.EmailField()
 
@@ -72,6 +74,7 @@ class ResetPasswordForm(forms.Form):
         'placeholder': 'email',
         'class':'validate',
         'data-length': '64',
+        'pattern': '[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$',
     })
 
     def clean(self):

@@ -10,12 +10,20 @@ from uuid import uuid4
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     is_instructor = models.BooleanField(default=False)
-    activation_token = models.CharField(max_length=128, default='', blank=True)
+    auth_token = models.CharField(max_length=128, default='', blank=True)
 
     def __str__(self):
         return self.user.username
 
+    def generate_auth_token(self):
+        self.auth_token = default_token_generator.make_token(self.user)
+        self.save()
+
+    def check_token(self, token):
+        return default_token_generator.check_token(self.user, token)
+
     def send_activation_email(self):
+        self.generate_auth_token()
         activation_message ="""
         Hi {},
 
@@ -25,7 +33,7 @@ class Profile(models.Model):
 
         Thank you,
         weClimb team
-        """.format(self.user.username, self.activation_token)
+        """.format(self.user.username, self.auth_token)
 
         return send_mail(
             'Activate account - weClimb',
@@ -38,10 +46,11 @@ class Profile(models.Model):
     def activate_user(self):
         self.user.is_active = True
         self.user.save()
-        self.activation_token = ''
+        self.auth_token = ''
         self.save()
 
     def send_reset_password_email(self):
+        self.generate_auth_token()
         activation_message ="""
         Hi {},
 
@@ -51,4 +60,12 @@ class Profile(models.Model):
 
         Thank you,
         weClimb team
-        """.format(self.user.username, self.activation_token)
+        """.format(self.user.username, self.auth_token)
+
+        return send_mail(
+            'Reset password - weClimb',
+            activation_message,
+            'climbing.planner@gmail.com',
+            [str(self.user.username)],
+            fail_silently=False,
+        )
