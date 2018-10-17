@@ -43,11 +43,14 @@ class Profile(models.Model):
             fail_silently=False,
         )
 
+    def clear_auth_token(self):
+        self.auth_token = ''
+        self.save()
+
     def activate_user(self):
         self.user.is_active = True
         self.user.save()
-        self.auth_token = ''
-        self.save()
+        self.clear_auth_token()
 
     def send_reset_password_email(self):
         self.generate_auth_token()
@@ -69,7 +72,3 @@ class Profile(models.Model):
             [str(self.user.username)],
             fail_silently=False,
         )
-
-    def clear_auth_token(self):
-        self.auth_token = ''
-        self.save()
