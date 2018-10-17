@@ -69,3 +69,7 @@ class Profile(models.Model):
             [str(self.user.username)],
             fail_silently=False,
         )
+
+    def clear_auth_token(self):
+        self.auth_token = ''
+        self.save()

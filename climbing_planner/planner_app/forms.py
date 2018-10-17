@@ -90,6 +90,7 @@ class ResetPasswordForm(forms.Form):
 class SetNewPasswordForm(forms.Form):
     password = forms.CharField(max_length=64, widget=forms.PasswordInput, label="")
     confirm_password = forms.CharField(max_length=64, widget=forms.PasswordInput, label="")
+    token = forms.HiddenInput()
 
     password.widget.attrs.update({
         'placeholder': 'new password',

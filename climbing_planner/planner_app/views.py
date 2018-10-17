@@ -158,8 +158,7 @@ class ResetPasswordView(View):
                 profile_to_reset_password = Profile.objects.get(user=user)
                 profile_to_reset_password.send_reset_password_email()
 
-                # TODO: Add message to the landing page that mail has been sent
-
+                ctx['reset_password_message'] = custom_messages.reset_password_message
                 return render(request, 'reset-password.html', ctx)
             else:
                 return render(request, 'reset-password.html', ctx)
@@ -175,10 +174,28 @@ class SetNewPasswordView(View):
             if not token:
                 return redirect('reset-password')
             else:
-                ctx = {
-                    'form': SetNewPasswordForm,
-                }
-                return render(request, 'set-new-password.html', ctx)
+                try:
+                    users_profile = Profile.objects.get(auth_token=token)
+                    if users_profile.check_token(token):
+                        ctx = {
+                        'form': SetNewPasswordForm,
+                        'token': token,
+                        }
+                        return render(request, 'set-new-password.html', ctx)
+                    else:
+                        ctx = {
+                            'form': ResetPasswordForm,
+                            'token_not_correct_message': custom_messages.token_not_correct,
+
+                        }
+                        return render(request, 'reset-password.html', ctx)
+                except:
+                    ctx = {
+                        'form': ResetPasswordForm,
+                        'token_not_correct_message': custom_messages.token_not_correct,
+
+                    }
+                    return render(request, 'reset-password.html', ctx)
         else:
             return redirect('home')
 
@@ -188,7 +205,23 @@ class SetNewPasswordView(View):
             'form': form,
         }
 
-        if form.is_valid:
+        if form.is_valid():
+            token = request.POST['token']
+            new_password = form.cleaned_data['password']
+            try:
+                users_profile = Profile.objects.get(auth_token=token)
+                users_profile.user.set_password(new_password)
+                users_profile.user.save()
+                users_profile.clear_auth_token()
+                ctx['password_changed_message'] = custom_messages.password_changed_message
+                return render(request, 'set-new-password.html', ctx)
+            except:
+                ctx = {
+                    'form': ResetPasswordForm,
+                    'token_not_correct_message': custom_messages.token_not_correct,
+
+                }
+                return render(request, 'reset-password.html', ctx)
             return render(request, 'set-new-password.html', ctx)
         else:
             return render(request, 'set-new-password.html', ctx)
