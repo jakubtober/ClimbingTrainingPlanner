@@ -61,6 +61,9 @@ class LogoutView(LoginRequiredMixin, View):
         logout(request)
         return redirect('login')
 
+    def post(self, request):
+        logout(request)
+        return redirect('login')
 
 class RegisterView(View):
     def get(self, request):
