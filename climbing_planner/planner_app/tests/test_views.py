@@ -42,12 +42,14 @@ class TestViews(TestCase):
 
         # POST with correct login credentials
         self.c.logout()
-        response = self.c.post(login_view_url, {
+        response = self.c.post(
+            login_view_url, {
             'username': self.username,
             'password': self.password,
         })
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, '/home/')
+        self.assertNotIn('errorlist nonfield', str(response.content))
 
         # check if redirects to /home/ when user logged
         response = self.c.post(login_view_url, {})
@@ -55,4 +57,42 @@ class TestViews(TestCase):
         self.assertEqual(response.url, '/home/')
 
         # check using wrong credentials
-        # to do
+        # not an email pattern
+        self.c.logout()
+        response = self.c.post(login_view_url, {
+            'username': 'user',
+            'password': self.password,
+        })
+        self.assertIn('errorlist nonfield', str(response.content))
+
+        # not correct password
+        self.c.logout()
+        response = self.c.post(login_view_url, {
+            'username': self.username,
+            'password': 'pass',
+        })
+        self.assertIn('errorlist nonfield', str(response.content))
+
+    def test_logout_view(self):
+        logout_view_url = 'http://127.0.0.1:8000/logout/'
+
+        response = self.c.get(logout_view_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/login/')
+
+        response = self.c.post(logout_view_url, {})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/login/')
+
+    def test_register_view(self):
+        register_view_url = 'http://127.0.0.1:8000/register/'
+
+        response = self.c.get(register_view_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'register.html')
+
+        # check if user is logged
+        self.c.login(username=self.username, password=self.password)
+        response = self.c.get(register_view_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/home/')

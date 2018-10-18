@@ -54,9 +54,7 @@ class LoginView(View):
             return redirect('home')
 
 
-class LogoutView(LoginRequiredMixin, View):
-    login_url = 'login'
-
+class LogoutView(View):
     def get(self, request):
         logout(request)
         return redirect('login')
