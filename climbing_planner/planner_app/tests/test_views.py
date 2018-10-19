@@ -1,5 +1,6 @@
 from django.test import TestCase, Client
 from django.contrib.auth.models import User
+from planner_app import custom_messages
 
 
 class TestViews(TestCase):
@@ -21,13 +22,13 @@ class TestViews(TestCase):
         self.assertTemplateUsed(response, 'welcome.html')
 
     def test_logout_view(self):
-        # pure GET
+        # GET
         logout_view_url = 'http://127.0.0.1:8000/logout/'
         response = self.c.get(logout_view_url)
         self.assertEqual(response.status_code, 302)
 
     def test_login_view(self):
-        # pure GET
+        # GET
         login_view_url = 'http://127.0.0.1:8000/login/'
         response = self.c.get(login_view_url)
         self.assertEqual(response.status_code, 200)
@@ -57,7 +58,7 @@ class TestViews(TestCase):
         self.assertEqual(response.url, '/home/')
 
         # check using wrong credentials
-        # not an email pattern
+        # wrong email
         self.c.logout()
         response = self.c.post(login_view_url, {
             'username': 'user',
@@ -87,6 +88,7 @@ class TestViews(TestCase):
     def test_register_view(self):
         register_view_url = 'http://127.0.0.1:8000/register/'
 
+        # GET
         response = self.c.get(register_view_url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'register.html')
@@ -94,5 +96,37 @@ class TestViews(TestCase):
         # check if user is logged
         self.c.login(username=self.username, password=self.password)
         response = self.c.get(register_view_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/home/')
+
+        # POST
+
+        # exisitng username
+        # too short password
+        self.c.logout()
+        response = self.c.post(register_view_url, {
+            'username': self.username,
+            'password': self.password,
+            'confirm_password': self.password,
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(custom_messages.use_different_email, str(response.content))
+        self.assertIn(custom_messages.password_min_six_chars, str(response.content))
+
+        # new username
+        # correct password
+        self.c.logout()
+        new_test_username = 'test@test.pl'
+        new_test_password = 'test2018'
+        response = self.c.post(register_view_url, {
+            'username': new_test_username,
+            'password': new_test_password,
+            'confirm_password': new_test_password,
+        })
+        self.assertTemplateUsed(response, 'login.html')
+
+        self.c.login(username=self.username, password=self.password)
+        response = self.c.post('http://127.0.0.1:8000/register/')
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, '/home/')
