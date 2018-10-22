@@ -1,5 +1,6 @@
 from django.test import TestCase, Client
 from django.contrib.auth.models import User
+from planner_app.models import Profile
 from planner_app import custom_messages
 
 
@@ -12,8 +13,13 @@ class TestViews(TestCase):
         self.user = User.objects.create_user(
             username=self.username,
             password=self.password,
-            is_active=True
+            is_active=True,
         )
+        self.profile = Profile.objects.create(
+            user=self.user,
+            is_instructor=True,
+        )
+        self.profile.generate_auth_token()
 
     def test_welcome_view(self):
         welcome_view_url = 'http://127.0.0.1:8000/'
@@ -130,3 +136,41 @@ class TestViews(TestCase):
         response = self.c.post('http://127.0.0.1:8000/register/')
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, '/home/')
+
+    def test_activate_user_view(self):
+        correct_token = self.profile.auth_token
+        not_correct_token = self.profile.auth_token + 'test'
+        activate_user_url = 'http://127.0.0.1:8000/register/activate?token='
+
+        # GET
+        # without token
+        # user not logged
+        self.c.logout()
+        response = self.c.get(activate_user_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/register/')
+
+        # without token
+        # user logged
+        self.c.login(username=self.username, password=self.password)
+        response = self.c.get(activate_user_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/home/')
+
+        # with correct token
+        # user not logged
+        self.c.logout()
+        response = self.c.get(activate_user_url+correct_token)
+        print(correct_token)
+        print(self.profile.auth_token)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.profile.user.is_active, True)
+        self.assertTemplateUsed(response, 'login.html')
+        self.assertEqual(correct_token, self.profile.auth_token)
+
+        # with not correct token
+        # user not logged
+        response = self.c.get(activate_user_url+not_correct_token)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'login.html')
+        self.assertIn(custom_messages.account_already_activated, str(response.content))
