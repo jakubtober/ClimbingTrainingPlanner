@@ -1,5 +1,4 @@
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
@@ -55,13 +54,14 @@ class LoginView(View):
             return redirect('home')
 
 
-class LogoutView(LoginRequiredMixin, View):
-    login_url = 'login'
-
+class LogoutView(View):
     def get(self, request):
         logout(request)
         return redirect('login')
 
+    def post(self, request):
+        logout(request)
+        return redirect('login')
 
 class RegisterView(View):
     def get(self, request):
@@ -90,12 +90,11 @@ class RegisterView(View):
                 new_user = User.objects.create_user(
                     username=username,
                     password=password,
-                    is_active=False
+                    is_active=False,
                 )
                 new_profile = Profile.objects.create(
                     user=new_user,
                     is_instructor=is_instructor,
-                    activation_token=default_token_generator.make_token(new_user)
                 )
                 new_profile.send_activation_email()
                 ctx = {
@@ -113,54 +112,91 @@ class ActivateUserView(View):
     def get(self, request):
         if not request.user.is_authenticated:
             token = request.GET['token']
-            ctx = {
-                'form': LoginForm,
-            }
 
-            try:
-                users_profile_with_token = Profile.objects.get(activation_token=token)
-                user_with_token = users_profile_with_token.user
+            if not token:
+                return redirect('register')
+            else:
+                ctx = {
+                    'form': LoginForm,
+                }
 
-                if default_token_generator.check_token(user_with_token, token):
-                    users_profile_with_token.activate_user()
-                    ctx['activation_message_success'] = custom_messages.user_successfully_activated
+                try:
+                    users_profile_with_token = Profile.objects.get(auth_token=token)
+                    if users_profile_with_token.check_token(token):
+                        users_profile_with_token.activate_user()
+                        ctx['activation_message_success'] = custom_messages.user_successfully_activated
+                        return render(request, 'login.html', ctx)
+                    else:
+                        ctx['activation_message_unsuccessful'] = custom_messages.token_not_correct
+                        return render(request, 'login.html', ctx)
+                except:
+                    ctx['activation_message_unsuccessful'] = custom_messages.account_already_activated
                     return render(request, 'login.html', ctx)
-                else:
-                    ctx['activation_message_unsuccessful'] = custom_messages.token_not_correct
-                    return render(request, 'login.html', ctx)
-            except:
-                ctx['activation_message_unsuccessful'] = custom_messages.account_already_activated
-                return render(request, 'login.html', ctx)
         else:
             return redirect('home')
 
 
 class ResetPasswordView(View):
     def get(self, request):
-        ctx = {
-            'form': ResetPasswordForm,
-        }
-        return render(request, 'reset-password.html', ctx)
-
-    def post(self, request):
-        form = ResetPasswordForm(request.POST)
-        ctx = {
-            'form': form,
-        }
-
-        if form.is_valid:
+        if not request.user.is_authenticated:
+            ctx = {
+                'form': ResetPasswordForm,
+            }
             return render(request, 'reset-password.html', ctx)
         else:
-            return render(request, 'reset-password.html', ctx)
+            return redirect('home')
+
+    def post(self, request):
+        if not request.user.is_authenticated:
+            form = ResetPasswordForm(request.POST)
+            ctx = {
+                'form': form,
+            }
+
+            if form.is_valid():
+                username = form.cleaned_data['email']
+                user = User.objects.get(username=username)
+                profile_to_reset_password = Profile.objects.get(user=user)
+                profile_to_reset_password.send_reset_password_email()
+
+                ctx['reset_password_message'] = custom_messages.reset_password_message
+                return render(request, 'reset-password.html', ctx)
+            else:
+                return render(request, 'reset-password.html', ctx)
+        else:
+            return redirect('home')
 
 
 class SetNewPasswordView(View):
     def get(self, request):
         if not request.user.is_authenticated:
-            ctx = {
-                'form': SetNewPasswordForm,
-            }
-            return render(request, 'set-new-password.html', ctx)
+            token = request.GET['token']
+
+            if not token:
+                return redirect('reset-password')
+            else:
+                try:
+                    users_profile = Profile.objects.get(auth_token=token)
+                    if users_profile.check_token(token):
+                        ctx = {
+                        'form': SetNewPasswordForm,
+                        'token': token,
+                        }
+                        return render(request, 'set-new-password.html', ctx)
+                    else:
+                        ctx = {
+                            'form': ResetPasswordForm,
+                            'token_not_correct_message': custom_messages.token_not_correct,
+
+                        }
+                        return render(request, 'reset-password.html', ctx)
+                except:
+                    ctx = {
+                        'form': ResetPasswordForm,
+                        'token_not_correct_message': custom_messages.token_not_correct,
+
+                    }
+                    return render(request, 'reset-password.html', ctx)
         else:
             return redirect('home')
 
@@ -170,7 +206,23 @@ class SetNewPasswordView(View):
             'form': form,
         }
 
-        if form.is_valid:
+        if form.is_valid():
+            token = request.POST['token']
+            new_password = form.cleaned_data['password']
+            try:
+                users_profile = Profile.objects.get(auth_token=token)
+                users_profile.user.set_password(new_password)
+                users_profile.user.save()
+                users_profile.clear_auth_token()
+                ctx['password_changed_message'] = custom_messages.password_changed_message
+                return render(request, 'set-new-password.html', ctx)
+            except:
+                ctx = {
+                    'form': ResetPasswordForm,
+                    'token_not_correct_message': custom_messages.token_not_correct,
+
+                }
+                return render(request, 'reset-password.html', ctx)
             return render(request, 'set-new-password.html', ctx)
         else:
             return render(request, 'set-new-password.html', ctx)
