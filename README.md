@@ -1,5 +1,5 @@
 # weClimb
-Web application to plan and track your climbing trainings.
+Web application to plan and track climbing trainings.
 
 Back-end:
 Python
